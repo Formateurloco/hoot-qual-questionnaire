@@ -197,14 +197,14 @@ function uniqueId(now) {
 }
 // Textes Unicode non encodés jusqu’à la construction finale du lien.
 function messageText(id) {
-  return `Bonjour,\n\nVeuillez trouver ci-joint ma déclaration d'événement indésirable Hoot Qual n° ${id}.\n\nPensez à joindre le fichier PDF Hoot Qual que vous venez de télécharger à ce message.\n\nCordialement.`;
+  return `Bonjour,\n\nVeuillez trouver ci-joint ma declaration d'evenement indesirable Hoot Qual numero ${id}.\n\nPensez a joindre le fichier PDF Hoot Qual que vous venez de telecharger a ce message.\n\nCordialement.`;
 }
 function buildMailto(email, subject, body) {
   return `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 function mailUrl() {
   const email = destinationEmail();
-  const subject = `Déclaration EI Hoot Qual — ${generated.id}`;
+  const subject = `Declaration EI Hoot Qual - ${generated.id}`;
   const body = messageText(generated.id);
   return buildMailto(email, subject, body);
 }
