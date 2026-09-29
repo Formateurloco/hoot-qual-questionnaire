@@ -195,55 +195,36 @@ function uniqueId(now) {
     : [...crypto.getRandomValues(new Uint8Array(12))].map(v=>v.toString(16).padStart(2,'0')).join('');
   return `EI-${now.getFullYear()}-${random.toUpperCase()}`;
 }
-// Les messages restent en Unicode jusqu’à la construction finale du mailto.
-function messageText(id, fallback=false) {
-  return `Bonjour,\n\nVeuillez trouver ci-joint ma déclaration d'événement indésirable Hoot Qual n° ${id}.\n\n${fallback ? "IMPORTANT : ajoutez le PDF Hoot Qual téléchargé à ce message avant de l'envoyer.\n\n" : ''}Cordialement.`;
+// Textes Unicode non encodés jusqu’à la construction finale du lien.
+function messageText(id) {
+  return `Bonjour,\n\nVeuillez trouver ci-joint ma déclaration d'événement indésirable Hoot Qual n° ${id}.\n\nPensez à joindre le fichier PDF Hoot Qual que vous venez de télécharger à ce message.\n\nCordialement.`;
 }
-function buildMailto(address, subject, body) {
-  return `mailto:${encodeURIComponent(address)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+function buildMailto(email, subject, body) {
+  return `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 function mailUrl() {
-  return buildMailto(destinationEmail(), 'Déclaration EI Hoot Qual — '+generated.id, messageText(generated.id,true));
+  const email = destinationEmail();
+  const subject = `Déclaration EI Hoot Qual — ${generated.id}`;
+  const body = messageText(generated.id);
+  return buildMailto(email, subject, body);
 }
-function downloadPDF() { if (generated) generated.doc.save(generated.file.name); }
-function supportsFileShare() {
-  if (typeof navigator.share !== 'function' || typeof navigator.canShare !== 'function') return false;
-  try { return navigator.canShare({files:[generated.file]}); }
-  catch (_) { return null; } // Une erreur de détection ne déclenche pas un mail.
-}
-function fallbackMail() {
-  if (!generated.downloaded) { downloadPDF(); generated.downloaded = true; }
-  byId('mail').hidden = false;
-  byId('mail').href = mailUrl();
-  byId('instructions').textContent = `Le téléchargement de votre PDF a été déclenché sur votre appareil. Ouvrez votre messagerie et ajoutez le fichier ${generated.file.name} au message avant de l’envoyer.`;
-}
-byId('download').addEventListener('click', downloadPDF);
-byId('copy-address').addEventListener('click', async () => {
-  const address = destinationEmail();
-  try {
-    if (!navigator.clipboard?.writeText) throw new Error('Clipboard unavailable');
-    await navigator.clipboard.writeText(address);
-    byId('msg').textContent = 'Adresse copiée.';
-  } catch (_) {
-    const field = byId('recipient'); field.focus(); field.select(); field.setSelectionRange(0,field.value.length);
-    let copied = false;
-    try { copied = document.execCommand('copy'); } catch (_) { /* Sélection manuelle. */ }
-    byId('msg').textContent = copied ? 'Adresse copiée.' : 'Adresse sélectionnée : utilisez Copier dans le menu de votre téléphone.';
-  }
+function openMail(url) { window.location.href = url; }
+byId('mail').addEventListener('click', () => {
+  if (generated?.downloaded) openMail(mailUrl());
 });
-byId('share').addEventListener('click', async () => {
-  if (!generated) return;
-  const available = supportsFileShare();
-  if (available === false) { fallbackMail(); return; }
-  const button = byId('share'); button.disabled = true;
+byId('download').addEventListener('click', async () => {
+  if (!generated || !reviewed) return;
+  const button = byId('download'); button.disabled = true;
   try {
-    // Appel direct dans le clic : aucun calcul PDF ni attente avant le partage.
-    await navigator.share({files:[generated.file],title:'Déclaration EI Hoot Qual — '+generated.id,text:messageText(generated.id)});
-    byId('msg').textContent = 'Vérifiez le destinataire et le PDF joint dans votre messagerie avant l’envoi. Hoot Qual ne peut pas confirmer l’envoi.';
-  } catch (error) {
-    byId('msg').textContent = error.name === 'AbortError'
-      ? 'Partage annulé. Votre PDF reste disponible ; vous pouvez réessayer.'
-      : 'Le partage n’a pas abouti. Réessayez « Partager le PDF » ou téléchargez le PDF pour le joindre manuellement dans votre messagerie.';
+    if (!generated.doc) generated.doc = createPDF(generated.data);
+    // La promesse confirme le déclenchement, pas l’écriture finale sur le téléphone.
+    await generated.doc.save(`HootQual_${generated.id}.pdf`, {returnPromise:true});
+    generated.downloaded = true;
+    byId('download-status').textContent = '✓ Téléchargement lancé. Vérifiez que le PDF est enregistré dans les téléchargements de votre appareil.';
+    byId('send-step').disabled = false;
+    byId('msg').textContent = '';
+  } catch (_) {
+    byId('msg').textContent = 'Le téléchargement n’a pas pu être lancé. Réessayez « Télécharger mon PDF ».';
   } finally { button.disabled = false; }
 });
 byId('generate').addEventListener('click', () => {
@@ -252,31 +233,25 @@ byId('generate').addEventListener('click', () => {
     byId('modify').click(); validate(); return;
   }
   if (!destinationEmail()) {
-    byId('msg').textContent = 'L’IFSI doit configurer l’adresse de réception avant de diffuser ce questionnaire. Votre déclaration n’a pas été transmise.';
+    byId('msg').textContent = 'L’IFSI doit configurer l’adresse de réception avant de diffuser ce questionnaire.';
     return;
   }
-  const button = byId('generate'); button.disabled = true;
+  if (!generated) {
+    const now = new Date();
+    const data = {version:3,id_ei:uniqueId(now),date_declaration:localTimestamp(now),...reviewed};
+    generated = {id:data.id_ei,data,doc:null,downloaded:false};
+    byId('download-status').textContent = '';
+  }
+  byId('ready-id').textContent = generated.id;
+  byId('recipient').textContent = destinationEmail();
+  byId('send-step').disabled = !generated.downloaded;
+  byId('review').hidden = true;
+  byId('transmission').hidden = false;
   byId('msg').textContent = '';
-  try {
-    if (!generated) {
-      const now = new Date();
-      const data = {version:3,id_ei:uniqueId(now),date_declaration:localTimestamp(now),...reviewed};
-      const doc = createPDF(data);
-      const pdfBlob = doc.output('blob');
-      generated = {doc,id:data.id_ei,file:new File([pdfBlob],`HootQual_${data.id_ei}.pdf`,{type:'application/pdf'})};
-    }
-    byId('ready-id').textContent = generated.id;
-    byId('recipient').value = destinationEmail();
-    byId('mail').hidden = true;
-    byId('mail').removeAttribute('href');
-    byId('transmission').hidden = false;
-    byId('instructions').textContent = 'Choisissez votre application de messagerie dans le menu de partage de votre téléphone. Le PDF sera partagé avec l’application choisie. Vérifiez le destinataire : il peut être nécessaire de le coller vous-même.';
-    const available = supportsFileShare();
-    byId('share').hidden = available === false;
-    if (available === false) fallbackMail();
-    byId('ready-title').focus();
-    byId('transmission').scrollIntoView({block:'start'});
-  } catch (_) {
-    byId('msg').textContent = 'Impossible de préparer ou de télécharger le PDF. Vos réponses sont conservées à l’écran ; réessayez.';
-  } finally { button.disabled = false; }
+  byId('ready-title').focus();
+  byId('transmission').scrollIntoView({block:'start'});
+});
+byId('back-review').addEventListener('click', () => {
+  byId('transmission').hidden = true;
+  showReview(reviewed);
 });

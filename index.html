@@ -18,12 +18,12 @@ Voir COPYRIGHT.txt.
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' file:; script-src 'self' file:; style-src 'self' file:; img-src 'self' data:; connect-src 'none'; form-action 'none'; object-src 'none'; base-uri 'none'">
   <title>Déclaration d’un événement indésirable · IFSI</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=20260930-simple">
   <script defer src="vendor/jspdf.umd.min.js"></script>
   <script defer src="vendor/font.js"></script>
   <script defer src="config.js"></script>
   <script defer src="assets/logo-pdf.js"></script>
-  <script defer src="formulaire.js"></script>
+  <script defer src="formulaire.js?v=20260930-simple"></script>
 </head>
 <body>
 <main class="wrap">
@@ -95,12 +95,21 @@ Voir COPYRIGHT.txt.
   <section id="transmission" hidden aria-labelledby="ready-title">
     <h2 id="ready-title" tabindex="-1">✓ Votre déclaration est prête</h2>
     <p id="ready-id"></p>
-    <label for="recipient">Destinataire</label>
-    <input id="recipient" readonly aria-label="Adresse du destinataire">
-    <div class="buttons"><button type="button" id="copy-address" class="secondary">Copier l’adresse</button><button type="button" id="share">Partager le PDF</button></div>
-    <p>Votre déclaration est prête à être transmise. Vérifiez que le PDF est bien joint à votre message avant l'envoi.</p>
-    <p id="instructions"></p>
-    <div class="buttons"><a class="button secondary" id="mail" hidden>Ouvrir ma messagerie</a><button type="button" class="secondary" id="download">Télécharger à nouveau mon PDF</button></div>
+    <section class="send-card">
+      <h3>1 — Téléchargez votre déclaration</h3>
+      <p>Téléchargez votre déclaration au format PDF et conservez-la sur votre appareil.</p>
+      <button type="button" id="download">Télécharger mon PDF</button>
+      <p id="download-status" role="status" aria-live="polite"></p>
+    </section>
+    <fieldset id="send-step" disabled>
+      <legend>2 — Envoyez votre déclaration</legend>
+      <p>Envoyez maintenant le PDF téléchargé à l’adresse suivante :</p>
+      <p id="recipient" class="destination"></p>
+      <p class="attachment-reminder">PENSEZ À JOINDRE LE PDF HOOT QUAL QUE VOUS VENEZ DE TÉLÉCHARGER</p>
+      <button type="button" id="mail" class="mail-action">Ouvrir ma messagerie</button>
+      <p>Après l’ouverture de votre messagerie, joignez le PDF téléchargé puis envoyez votre message.</p>
+    </fieldset>
+    <button type="button" id="back-review" class="secondary">Revoir ma déclaration</button>
   </section>
   <p id="msg" role="status" aria-live="polite"></p>
   <footer>Hoot Qual · Conception : FRIAS KEVIN<br>Le téléchargement du PDF ou l’ouverture d’une messagerie ne vaut pas transmission à l’IFSI.</footer>
