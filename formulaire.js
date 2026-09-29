@@ -195,19 +195,58 @@ function uniqueId(now) {
     : [...crypto.getRandomValues(new Uint8Array(12))].map(v=>v.toString(16).padStart(2,'0')).join('');
   return `EI-${now.getFullYear()}-${random.toUpperCase()}`;
 }
-function mailUrl() {
-  const body = `Bonjour,\n\nVeuillez trouver ci-joint ma déclaration d'événement indésirable Hoot Qual n° ${generated.id}.\n\nPensez à joindre le PDF téléchargé avant d'envoyer ce message.\n\nCordialement.`;
-  return `mailto:${encodeURIComponent(destinationEmail())}?subject=${encodeURIComponent('Déclaration EI Hoot Qual — '+generated.id)}&body=${encodeURIComponent(body)}`;
+// Les messages restent en Unicode jusqu’à la construction finale du mailto.
+function messageText(id, fallback=false) {
+  return `Bonjour,\n\nVeuillez trouver ci-joint ma déclaration d'événement indésirable Hoot Qual n° ${id}.\n\n${fallback ? "IMPORTANT : ajoutez le PDF Hoot Qual téléchargé à ce message avant de l'envoyer.\n\n" : ''}Cordialement.`;
 }
-function openMail() { byId('mail').click(); }
+function buildMailto(address, subject, body) {
+  return `mailto:${encodeURIComponent(address)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+function mailUrl() {
+  return buildMailto(destinationEmail(), 'Déclaration EI Hoot Qual — '+generated.id, messageText(generated.id,true));
+}
 function downloadPDF() { if (generated) generated.doc.save(generated.file.name); }
+function supportsFileShare() {
+  if (typeof navigator.share !== 'function' || typeof navigator.canShare !== 'function') return false;
+  try { return navigator.canShare({files:[generated.file]}); }
+  catch (_) { return null; } // Une erreur de détection ne déclenche pas un mail.
+}
 function fallbackMail() {
-  downloadPDF();
-  byId('instructions').textContent = `Le téléchargement de votre déclaration PDF a été déclenché. Votre application de messagerie va maintenant s’ouvrir. Joignez le fichier ${generated.file.name} au message avant de l’envoyer. Si rien ne s’ouvre, utilisez « Ouvrir ma messagerie » ou votre messagerie habituelle.`;
-  openMail();
+  if (!generated.downloaded) { downloadPDF(); generated.downloaded = true; }
+  byId('mail').hidden = false;
+  byId('mail').href = mailUrl();
+  byId('instructions').textContent = `Le téléchargement de votre PDF a été déclenché sur votre appareil. Ouvrez votre messagerie et ajoutez le fichier ${generated.file.name} au message avant de l’envoyer.`;
 }
 byId('download').addEventListener('click', downloadPDF);
-byId('generate').addEventListener('click', async () => {
+byId('copy-address').addEventListener('click', async () => {
+  const address = destinationEmail();
+  try {
+    if (!navigator.clipboard?.writeText) throw new Error('Clipboard unavailable');
+    await navigator.clipboard.writeText(address);
+    byId('msg').textContent = 'Adresse copiée.';
+  } catch (_) {
+    const field = byId('recipient'); field.focus(); field.select(); field.setSelectionRange(0,field.value.length);
+    let copied = false;
+    try { copied = document.execCommand('copy'); } catch (_) { /* Sélection manuelle. */ }
+    byId('msg').textContent = copied ? 'Adresse copiée.' : 'Adresse sélectionnée : utilisez Copier dans le menu de votre téléphone.';
+  }
+});
+byId('share').addEventListener('click', async () => {
+  if (!generated) return;
+  const available = supportsFileShare();
+  if (available === false) { fallbackMail(); return; }
+  const button = byId('share'); button.disabled = true;
+  try {
+    // Appel direct dans le clic : aucun calcul PDF ni attente avant le partage.
+    await navigator.share({files:[generated.file],title:'Déclaration EI Hoot Qual — '+generated.id,text:messageText(generated.id)});
+    byId('msg').textContent = 'Vérifiez le destinataire et le PDF joint dans votre messagerie avant l’envoi. Hoot Qual ne peut pas confirmer l’envoi.';
+  } catch (error) {
+    byId('msg').textContent = error.name === 'AbortError'
+      ? 'Partage annulé. Votre PDF reste disponible ; vous pouvez réessayer.'
+      : 'Le partage n’a pas abouti. Réessayez « Partager le PDF » ou téléchargez le PDF pour le joindre manuellement dans votre messagerie.';
+  } finally { button.disabled = false; }
+});
+byId('generate').addEventListener('click', () => {
   if (!reviewed) return;
   if (!form.checkValidity() || JSON.stringify(collect()) !== JSON.stringify(reviewed)) {
     byId('modify').click(); validate(); return;
@@ -223,23 +262,21 @@ byId('generate').addEventListener('click', async () => {
       const now = new Date();
       const data = {version:3,id_ei:uniqueId(now),date_declaration:localTimestamp(now),...reviewed};
       const doc = createPDF(data);
-      generated = {doc,id:data.id_ei,file:new File([doc.output('blob')],`HootQual_${data.id_ei}.pdf`,{type:'application/pdf'})};
+      const pdfBlob = doc.output('blob');
+      generated = {doc,id:data.id_ei,file:new File([pdfBlob],`HootQual_${data.id_ei}.pdf`,{type:'application/pdf'})};
     }
-    byId('mail').href = mailUrl();
+    byId('ready-id').textContent = generated.id;
+    byId('recipient').value = destinationEmail();
+    byId('mail').hidden = true;
+    byId('mail').removeAttribute('href');
     byId('transmission').hidden = false;
-    byId('instructions').textContent = `Choisissez votre application de messagerie et indiquez le destinataire ${destinationEmail()}. Le menu de partage ne préremplit pas nécessairement cette adresse. Fichier : ${generated.file.name}`;
-    let canShare = false;
-    try { canShare = !!(navigator.share && navigator.canShare && navigator.canShare({files:[generated.file]})); } catch (_) { /* Repli mail. */ }
-    if (canShare) {
-      try {
-        await navigator.share({files:[generated.file],title:`Déclaration événement indésirable — ${generated.id}`,text:`Bonjour,\n\nVeuillez trouver ci-joint ma déclaration d'événement indésirable Hoot Qual n° ${generated.id}.\n\nCordialement.`});
-        byId('msg').textContent = 'Vérifiez dans votre messagerie que le PDF est joint et que le message est envoyé au destinataire indiqué. Hoot Qual ne peut pas confirmer l’envoi.';
-      } catch (error) {
-        if (error.name === 'AbortError') byId('msg').textContent = 'Partage annulé. Vous pouvez réessayer ou télécharger votre PDF et le joindre à un message.';
-        else fallbackMail();
-      }
-    } else fallbackMail();
+    byId('instructions').textContent = 'Choisissez votre application de messagerie dans le menu de partage de votre téléphone. Le PDF sera partagé avec l’application choisie. Vérifiez le destinataire : il peut être nécessaire de le coller vous-même.';
+    const available = supportsFileShare();
+    byId('share').hidden = available === false;
+    if (available === false) fallbackMail();
+    byId('ready-title').focus();
+    byId('transmission').scrollIntoView({block:'start'});
   } catch (_) {
-    byId('msg').textContent = 'Impossible de préparer ou de télécharger le PDF. Vos réponses sont conservées à l’écran ; réessayez ou utilisez un autre navigateur.';
+    byId('msg').textContent = 'Impossible de préparer ou de télécharger le PDF. Vos réponses sont conservées à l’écran ; réessayez.';
   } finally { button.disabled = false; }
 });
