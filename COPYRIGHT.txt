@@ -1,0 +1,14 @@
+HOOT QUAL
+Signaler • Analyser • Améliorer
+
+Copyright © 2026 FRIAS KEVIN
+Tous droits réservés.
+
+Conception et développement :
+FRIAS KEVIN
+
+Création originale : 2026.
+
+Sauf disposition légale contraire, aucune partie du code source original, de l'interface originale ou des éléments graphiques originaux de Hoot Qual ne peut être reproduite, redistribuée, publiée, modifiée ou réutilisée sans l'autorisation préalable de l'auteur.
+
+Les composants, bibliothèques et autres éléments provenant de tiers restent soumis à leurs licences respectives.

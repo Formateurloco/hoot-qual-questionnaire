@@ -1,0 +1,103 @@
+<!doctype html>
+<!--
+HOOT QUAL
+Signaler • Analyser • Améliorer
+
+Conception et développement :
+FRIAS KEVIN
+
+Création : 2026
+Copyright © 2026 FRIAS KEVIN
+Tous droits réservés.
+
+Voir COPYRIGHT.txt.
+-->
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' file:; script-src 'self' file:; style-src 'self' file:; img-src 'self' data:; connect-src 'none'; form-action 'none'; object-src 'none'; base-uri 'none'">
+  <title>Déclaration d’un événement indésirable · IFSI</title>
+  <link rel="stylesheet" href="style.css">
+  <script defer src="vendor/jspdf.umd.min.js"></script>
+  <script defer src="vendor/font.js"></script>
+  <script defer src="config.js"></script>
+  <script defer src="assets/logo-pdf.js"></script>
+  <script defer src="formulaire.js"></script>
+</head>
+<body>
+<main class="wrap">
+  <header><div class="brand"><img src="assets/hoot_qual_logo.png" alt="" width="132" height="88"><div><strong>HOOT QUAL</strong><p>Signaler • Analyser • Améliorer</p></div></div>
+  <p class="eyebrow">IFSI · QUALITÉ ET PRÉVENTION</p><h1>Déclaration d'un événement indésirable</h1>
+  <p>Ce formulaire vous permet de signaler un événement indésirable. Les informations renseignées serviront à l'analyse et au suivi de l'événement par l'IFSI.</p></header>
+  <aside class="notice">Évitez de renseigner inutilement dans les zones de texte libre le nom, le prénom ou toute autre donnée permettant d'identifier un patient ou une tierce personne.</aside>
+  <p class="help">Vos réponses restent dans ce navigateur. Le PDF est généré sur votre appareil, puis vous choisissez comment le transmettre. Aucune réponse n'est enregistrée sur GitHub.</p>
+  <p class="destination">Destinataire IFSI : <strong id="destination"></strong></p>
+  <noscript>Activez JavaScript pour remplir le formulaire et générer le PDF localement.</noscript>
+  <form id="f" autocomplete="off">
+    <p class="required-note">Les champs marqués * sont obligatoires.</p>
+    <fieldset><legend><span>1</span> Déclarant</legend>
+      <div class="row"><div><label for="nom_declarant">Nom et prénom *</label><input id="nom_declarant" required maxlength="160"></div>
+      <div><label for="email_declarant">Adresse mail *</label><input id="email_declarant" type="email" required maxlength="254"></div></div>
+      <label for="qualite">Qualité du déclarant *</label><select id="qualite" required></select>
+      <div id="qualite_precision_zone" hidden><label for="qualite_precision">Précisez votre qualité *</label><input id="qualite_precision" maxlength="200" disabled></div>
+      <div id="promotion_zone" hidden><label for="promotion">Promotion *</label><input id="promotion" placeholder="Ex. 2025–2028" maxlength="120" disabled></div>
+    </fieldset>
+    <fieldset><legend><span>2</span> Informations sur l’événement</legend>
+      <div class="row"><div><label for="date_evenement">Date de l’événement *</label><input id="date_evenement" type="date" required></div>
+      <div><label for="heure_evenement">Heure de l’événement *</label><input id="heure_evenement" type="time" required></div></div>
+      <label for="localisation">Localisation *</label><select id="localisation" required></select>
+      <label for="lieu_precision">Précisez le lieu *</label><input id="lieu_precision" required maxlength="300" aria-describedby="lieu_aide">
+      <p class="help" id="lieu_aide">Salle, amphithéâtre, couloir, terrain de stage, établissement extérieur…</p>
+    </fieldset>
+    <fieldset><legend><span>3</span> Catégorie</legend>
+      <label for="categorie">Catégorie de l’événement *</label><select id="categorie" required></select>
+      <div id="categorie_precision_zone" hidden><label for="categorie_precision">Précisez la catégorie *</label><input id="categorie_precision" maxlength="300" disabled></div>
+      <label for="gravite">Gravité perçue *</label><select id="gravite" required></select>
+    </fieldset>
+    <fieldset><legend><span>4</span> Indicateurs de maîtrise</legend>
+      <label for="evenement_connu">L’événement déclaré ce jour est : *</label><select id="evenement_connu" required></select>
+      <div id="deja_signale_zone" hidden><label for="deja_signale">Cet événement a-t-il déjà été signalé ? *</label><select id="deja_signale" disabled></select></div>
+      <label for="risque_reapparition">Selon vous, cet événement pourrait-il se reproduire ? *</label><select id="risque_reapparition" required></select>
+    </fieldset>
+    <fieldset><legend><span>5</span> Personne(s) prévenue(s) de l’événement</legend>
+      <p id="personnes_label" class="question">Personne(s) prévenue(s) de l'événement *</p>
+      <p class="help">Plusieurs réponses possibles. « Personne » exclut les autres choix.</p>
+      <div id="personnes" role="group" aria-labelledby="personnes_label"></div>
+      <div id="personne_autre_zone" hidden><label for="personne_autre">Précisez *</label><input id="personne_autre" maxlength="300" disabled></div>
+    </fieldset>
+    <fieldset><legend><span>6</span> Description de l’événement</legend>
+      <p class="notice" id="description_aide">Décrivez uniquement les éléments nécessaires à la compréhension de l’événement. Évitez de renseigner inutilement le nom, prénom ou toute autre donnée permettant d’identifier un patient ou une tierce personne.</p>
+      <label for="description">Décrivez les faits de manière chronologique et factuelle. *</label><textarea id="description" rows="8" required maxlength="20000" aria-describedby="description_aide"></textarea>
+    </fieldset>
+    <fieldset><legend><span>7</span> Conséquences</legend>
+      <p id="consequences_label" class="question">Quelles ont été les conséquences de cet événement ? *</p>
+      <p class="help">Plusieurs réponses possibles. « Aucune conséquence constatée » exclut les autres choix.</p>
+      <div id="consequences" role="group" aria-labelledby="consequences_label"></div>
+      <div id="consequences_autre_zone" hidden><label for="consequences_autre">Précisez *</label><input id="consequences_autre" maxlength="500" disabled></div>
+      <label for="consequences_precision">Précisions concernant les conséquences (facultatif)</label><textarea id="consequences_precision" maxlength="20000"></textarea>
+    </fieldset>
+    <fieldset><legend><span>8</span> Mesures immédiates</legend>
+      <label for="mesures_immediates">Des mesures ont-elles été prises immédiatement ? *</label><select id="mesures_immediates" required></select>
+      <div id="mesures_description_zone" hidden><label for="mesures_description">Décrivez les mesures prises immédiatement *</label><textarea id="mesures_description" maxlength="20000" disabled></textarea></div>
+    </fieldset>
+    <fieldset><legend><span>9</span> Proposition du déclarant</legend>
+      <label for="proposition_declarant">Avez-vous une proposition permettant d’éviter que cet événement se reproduise ? (facultatif)</label><textarea id="proposition_declarant" rows="6" maxlength="20000"></textarea>
+    </fieldset>
+    <button type="submit">Vérifier ma déclaration <span aria-hidden="true">→</span></button>
+  </form>
+  <section id="review" hidden aria-labelledby="review_title">
+    <h2 id="review_title" tabindex="-1">Vérifiez votre déclaration</h2>
+    <p>Relisez les informations avant de générer votre PDF. La déclaration n’est pas envoyée automatiquement.</p>
+    <div id="review_content"></div>
+    <div class="buttons"><button type="button" id="modify" class="secondary">Modifier</button><button type="button" id="generate">Envoyer ma déclaration</button></div>
+  </section>
+  <section id="transmission" hidden aria-label="Transmettre le PDF">
+    <p>Votre déclaration est prête à être transmise. Vérifiez que le PDF est bien joint à votre message avant l'envoi.</p>
+    <p id="instructions"></p>
+    <div class="buttons"><a class="button secondary" id="mail">Ouvrir ma messagerie</a><button type="button" class="secondary" id="download">Télécharger à nouveau mon PDF</button></div>
+  </section>
+  <p id="msg" role="status" aria-live="polite"></p>
+  <footer>Hoot Qual · Conception : FRIAS KEVIN<br>Le téléchargement du PDF ou l’ouverture d’une messagerie ne vaut pas transmission à l’IFSI.</footer>
+</main>
+</body></html>
