@@ -18,12 +18,12 @@ Voir COPYRIGHT.txt.
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' file:; script-src 'self' file:; style-src 'self' file:; img-src 'self' data:; connect-src 'none'; form-action 'none'; object-src 'none'; base-uri 'none'">
   <title>Déclaration d’un événement indésirable · IFSI</title>
-  <link rel="stylesheet" href="style.css?v=20260930-simple">
+  <link rel="stylesheet" href="style.css?v=final-privacy-1">
   <script defer src="vendor/jspdf.umd.min.js"></script>
   <script defer src="vendor/font.js"></script>
   <script defer src="config.js"></script>
   <script defer src="assets/logo-pdf.js"></script>
-  <script defer src="formulaire.js?v=mail-ascii-1"></script>
+  <script defer src="formulaire.js?v=final-utf8-1"></script>
 </head>
 <body>
 <main class="wrap">
@@ -33,6 +33,14 @@ Voir COPYRIGHT.txt.
   <aside class="notice">Évitez de renseigner inutilement dans les zones de texte libre le nom, le prénom ou toute autre donnée permettant d'identifier un patient ou une tierce personne.</aside>
   <p class="help">Vos réponses restent dans ce navigateur. Le PDF est généré sur votre appareil, puis vous choisissez comment le transmettre. Aucune réponse n'est enregistrée sur GitHub.</p>
   <p class="destination">Destinataire IFSI : <strong id="destination"></strong></p>
+  <aside class="notice privacy" aria-labelledby="privacy-title">
+    <h2 id="privacy-title">🔒 Protection de vos données personnelles</h2>
+    <p>Les informations recueillies dans ce formulaire sont traitées par l’IFSI du CHIV afin de permettre le signalement, l’analyse et le suivi des événements indésirables, dans une démarche d’amélioration de la qualité.</p>
+    <p>Les données sont destinées uniquement aux professionnels habilités de l’établissement, chargés du traitement et du suivi des événements indésirables.</p>
+    <p>Les données recueillies sont conservées pendant une durée de 3 ans.</p>
+    <p>Vous pouvez exercer vos droits concernant vos données personnelles en contactant l’IFSI du CHIV.</p>
+    <p>Afin de respecter la confidentialité, ne mentionnez pas inutilement dans votre description d’informations permettant d’identifier un patient ou un tiers.</p>
+  </aside>
   <noscript>Activez JavaScript pour remplir le formulaire et générer le PDF localement.</noscript>
   <form id="f" autocomplete="off">
     <p class="required-note">Les champs marqués * sont obligatoires.</p>
