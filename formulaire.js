@@ -34,7 +34,7 @@ for (const [i, value] of consequenceOptions.entries()) {
   label.append(input, document.createTextNode(value)); byId('consequences').append(label);
 }
 const boxes = [...document.querySelectorAll('[name="consequences"]')];
-const personneOptions = ['Directeur', 'Cadre de santé', 'Secrétaire', 'Intendant', 'Autre', 'Personne'];
+const personneOptions = ['Direction', 'Formateur', 'Secrétaire', 'Intendant', 'Autre', 'Personne'];
 for (const [i, value] of personneOptions.entries()) {
   const label = document.createElement('label'); label.className = 'check';
   const input = document.createElement('input'); input.type = 'checkbox'; input.name = 'personnes'; input.value = value; input.id = `personne_${i}`;
